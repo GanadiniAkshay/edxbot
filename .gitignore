@@ -5,4 +5,4 @@ deployment.txt
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 config.json
-actions/pycache
+actions/__pycache__
