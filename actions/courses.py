@@ -1,8 +1,10 @@
 from flask_wizard import response
+from urllib.parse import quote
 
 import json
 import math
 import operator
+
 
 def find_course(session):
     response.send(session,"Finding the courses")
