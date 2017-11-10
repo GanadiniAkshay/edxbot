@@ -1,0 +1,34 @@
+{
+    "android": [
+        {
+            "topic": "Programming",
+            "is_final":"false",
+            "question": "Do you have programming experience?",
+            "reply_text": "It's important to know some programming before jumping into android. \n\nHere are some courses to get introduced to programming",
+            "courses": [
+                "Introduction to Computer Science"
+            ]
+        },
+        {
+            "topic": "Java",
+            "is_final":"false",
+            "question": "Do you know how to program in Java?",
+            "reply_text": "Android programs are generally developed using Java. It's good to get some experience with Java before jumping into android. \n\nHere are some quick introductory courses in Java",
+            "courses": [
+                "Introduction to Java Programming: Starting to code in Java",
+                "Introduction to Java Programming: Writing Good Code",
+                "Java Fundamentals for Android Development"
+            ]
+        },
+        {
+            "topic": "Android",
+            "is_final":"true",
+            "reply_text":"Here are a few courses to teach you android development",
+            "courses":[
+                "Professional Android App Development",
+                "Android: Introducci\u00f3n  a la programaci\u00f3n",
+                "Android App Development for Beginners"
+            ]
+        }
+    ]
+}
