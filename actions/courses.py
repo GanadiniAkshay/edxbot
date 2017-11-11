@@ -79,75 +79,110 @@ def find_profession(session):
     if len(session['entities']) > 0:
         profession = session['entities'][0]['value']
         if 'android' in profession.lower():
-            response.sendTyping(session)
-            with open('./data/professions.json','r') as data:
-                professions = json.loads(data.read())
-                android_prof = professions['android']
-                
-                for obj in android_prof:
-                    topic = obj['topic']
-                    is_final = obj['is_final']
-
-                    if is_final == "true":
-                        with open('./data/mod_courses.json','r') as data:
-                            courses_data = json.loads(data.read())
-
-                        courses = obj['courses']
-                        reply_text = obj['reply_text']
-
-                        res_courses = []
-                        for course in courses:
-                            if course in courses_data:
-                                search_url = courses_data[course]['marketing_url'].split("?")[0] + '?search_query=' + quote(courses_data[course]['title'])
-                                if courses_data[course]['image']['src'] and courses_data[course]['image']['src']!='None':
-                                    img_url = courses_data[course]['image']['src']
-                                else:
-                                    img_url = "https://www.edx.org/sites/default/files/mediakit/image/thumb/edx_logo_200x200.png"
-                                course_obj = response.template_element(
-                                                                            title=courses_data[course]['title'],
-                                                                            image_url=img_url,
-                                                                            subtitle=courses_data[course]['short_description'],
-                                                                            action=response.actions(type="web_url",url=search_url),
-                                                                            buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
-                                                                        )
-                                res_courses.append(course_obj)
-
-                        template = response.template(type="generic",elements=res_courses)
-                        response.send(session,reply_text)
-                        response.send(session,template)
-                        break
-                    
-                    if topic in topics_known:
-                        continue
-                    
-                    else:
-                        quick_reply_obj = response.quick_reply(
-                                                                text=obj['question'],
-                                                                replies = [
-                                                                    response.replies(
-                                                                        title="Yes",
-                                                                        payload="Yes"
-                                                                    ),
-                                                                    response.replies(
-                                                                        title="No",
-                                                                        payload="No"
-                                                                    )
-                                                                ]
-                                                               )
-                        response.send(session,quick_reply_obj)
-
-                        key = session['user']['id']
-                        event = {
-                            "question":"topic",
-                            "topic":topic,
-                            "profession":"android",
-                            "courses":obj['courses'],
-                            "reply_text": obj['reply_text']
-                        }
-                        redis.hmset(key, event)
-                        redis.expire(key, 259200)
-                        break
+            profession = 'android'
+        elif 'frontend' in profession.lower() or 'front end' in profession.lower() or 'front-end' in profession.lower():
+            profession = 'frontend'
         else:
-            response.send(session,"Unfortunately I don't have a report ready for that job role."+ "\n\n" +"But your request has been recieved and we will get back with the results :)")
+            response.send(session,"Unfortunately I don't have a report ready for that job role."+ "\n\n" +"But your request has been recieved and I will get back with the results :)")
+            insert = mongo.db.requests.insert_one({"user_id":session['user']['id'],"request":profession})
+            response.send(session,"Here are some professions that I can help with currently")
+            choices = [
+                response.template_element(
+                                            title='Android Developer',
+                                            image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/872px-Android_robot.svg.png",
+                                            buttons=[response.button(type="postback",title="Select",payload="I want to be an android developer")]
+                                        ),
+                response.template_element(
+                                            title='Frontend Developer',
+                                            image_url="https://image.ibb.co/ntCt1Q/web_1935737_640.png",
+                                            buttons=[response.button(type="postback",title="Select",payload="I want to be a frontend developer")]
+                                        )
+            ]
+            template = response.template(type="generic",elements=choices)
+            response.send(session,template)
+            return 1
+        
+        response.sendTyping(session)
+        with open('./data/professions.json','r') as data:
+            professions = json.loads(data.read())
+            prof = professions[profession]
+            
+            for obj in prof:
+                topic = obj['topic']
+                is_final = obj['is_final']
+
+                if is_final == "true":
+                    with open('./data/mod_courses.json','r') as data:
+                        courses_data = json.loads(data.read())
+
+                    courses = obj['courses']
+                    reply_text = obj['reply_text']
+
+                    res_courses = []
+                    for course in courses:
+                        if course in courses_data:
+                            search_url = courses_data[course]['marketing_url'].split("?")[0] + '?search_query=' + quote(courses_data[course]['title'])
+                            if courses_data[course]['image']['src'] and courses_data[course]['image']['src']!='None':
+                                img_url = courses_data[course]['image']['src']
+                            else:
+                                img_url = "https://www.edx.org/sites/default/files/mediakit/image/thumb/edx_logo_200x200.png"
+                            course_obj = response.template_element(
+                                                                        title=courses_data[course]['title'],
+                                                                        image_url=img_url,
+                                                                        subtitle=courses_data[course]['short_description'],
+                                                                        action=response.actions(type="web_url",url=search_url),
+                                                                        buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
+                                                                    )
+                            res_courses.append(course_obj)
+
+                    template = response.template(type="generic",elements=res_courses)
+                    response.send(session,reply_text)
+                    response.send(session,template)
+                    break
+                
+                if topic in topics_known:
+                    continue
+                
+                else:
+                    quick_reply_obj = response.quick_reply(
+                                                            text=obj['question'],
+                                                            replies = [
+                                                                response.replies(
+                                                                    title="Yes",
+                                                                    payload="Yes"
+                                                                ),
+                                                                response.replies(
+                                                                    title="No",
+                                                                    payload="No"
+                                                                )
+                                                            ]
+                                                            )
+                    response.send(session,quick_reply_obj)
+
+                    key = session['user']['id']
+                    event = {
+                        "question":"topic",
+                        "topic":topic,
+                        "profession":profession,
+                        "courses":obj['courses'],
+                        "reply_text": obj['reply_text']
+                    }
+                    redis.hmset(key, event)
+                    redis.expire(key, 259200)
+                    break
     else:
         response.send(session,"Please choose a profession")
+        choices = [
+            response.template_element(
+                                        title='Android Developer',
+                                        image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/872px-Android_robot.svg.png",
+                                        buttons=[response.button(type="postback",title="Select",payload="I want to be an android developer")]
+                                    ),
+            response.template_element(
+                                        title='Frontend Developer',
+                                        image_url="https://image.ibb.co/ntCt1Q/web_1935737_640.png",
+                                        buttons=[response.button(type="postback",title="Select",payload="I want to be a frontend developer")]
+                                    )
+        ]
+        template = response.template(type="generic",elements=choices)
+        response.send(session,template)

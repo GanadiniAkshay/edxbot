@@ -30,5 +30,53 @@
                 "Android App Development for Beginners"
             ]
         }
+    ],
+    "frontend": [
+        {
+            "topic":"HTML",
+            "is_final":"false",
+            "question":"Frontend development includes producing the HTML, CSS and Javascript for a website or a web application.\n\nDo you know HTML?",
+            "reply_text":"Here are a few courses to start learning HTML",
+            "courses":[
+                "HTML5 Coding Essentials and Best Practices",
+                "HTML5 and CSS Fundamentals",
+                "Introduction to HTML and JavaScript",
+                "HTML5 Apps and Games: Advanced Techniques"
+            ]
+        },
+        {
+            "topic":"CSS",
+            "is_final":"false",
+            "question":"CSS let's you apply styles to your web pages.\n\nDo you know CSS?",
+            "reply_text":"Here are a few courses to start learning CSS",
+            "courses":[
+                "CSS Basics",
+                "Advanced CSS Concepts",
+                "Introduction to Bootstrap"   
+            ]
+        },
+        {
+            "topic":"Javascript",
+            "is_final":"false",
+            "question":"Javascript lets you add dynamic functionality to your web pages.\n\nDo you know Javascript?",
+            "reply_text":"Here are a few courses to start learning Javascript",
+            "courses":[
+                "Javascript Introduction",
+                "Programming for the Web with JavaScript",
+                "Asynchronous Programming with JavaScript",
+                "Introduction to jQuery"   
+            ]
+        },
+        {
+            "topic":"Angular",
+            "is_final":"true",
+            "reply_text":"Angular.js and ReactJS are one of the most popular frontend frameworks used by developers around the world.\n\nHere are a few courses for learning Angular.js and ReactJS",
+            "courses":[
+                "AngularJS: Framework Fundamentals",
+                "AngularJS: Advanced Framework Techniques",
+                "Developing Dynamic Web Applications Using Angular",
+                "Introduction to ReactJS"   
+            ]
+        }
     ]
 }

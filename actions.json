@@ -2,5 +2,8 @@
     "find purpose":"courses.find_course",
     "find by profession":"courses.find_profession",
     "yes":"reply.yes",
-    "no":"reply.no"
+    "no":"reply.no",
+    "bot purpose":"helper.purpose",
+    "hints":"helper.purpose",
+    "certificates":"helper.certificates"
 }
