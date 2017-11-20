@@ -7,6 +7,9 @@ import operator
 import os
 
 
+def maybe_find_course(session):
+    response.send(session,"Do you want me to find courses?")
+
 def find_course(session):
     response.send(session,"Finding the courses")
     response.sendTyping(session)
@@ -17,7 +20,6 @@ def find_course(session):
         return 1
     with open('./data/mod_courses.json','r') as data:
         courses = json.loads(data.read())
-        
     with open('./data/inv_index.json','r') as data:
         inv_index= json.loads(data.read())
 
