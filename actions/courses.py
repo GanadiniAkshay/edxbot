@@ -8,19 +8,21 @@ import os
 
 
 def maybe_find_course(session):
+    redis = session['cache']
     #load the stop words
     stopWords = ['d', 'down', 'they', 'during', 'no', 'yourselves', 'most', 'needn', 'which', 'yours', 'you', 've', 'once', 'own', 'does', 'weren', 'myself', 'will', 'mustn', 'm', 'couldn', 'from', 'their', 'ain', 'off', 'isn', 'wasn', 'doesn', 'll', 'about', 'where', 'only', 'an', 'nor', 'shouldn', 'by', 'themselves', 'should', 'him', 'ours', 'to', 'hasn', 'for', 'why', 'until', 'y', 'when', 'her', 'aren', 'didn', 'that', 'there', 'at', 'same', 'herself', 'below', 'it', 'under', 'how', 'more', 'whom', 'not', 'both', 'don', 'against', 'further', 'hers', 'just', 'each', 'being', 'your', 'now', 'then', 'if', 'have', 'is', 'be', 'but', 'shan', 'the', 'before', 'over', 's', 'his', 'mightn', 'as', 'can', 'yourself', 'up', 'between', 'i', 'on', 'few', 'having', 'and', 'himself', 'this', 'again', 'he', 'am', 'theirs', 'who', 'these', 'has', 'or', 'with', 't', 'here', 'such', 'through', 'won', 'above', 'did', 'she', 'had', 'our', 'my', 'all', 'were', 'its', 'hadn', 'other', 'doing', 'are', 'them', 'wouldn', 'while', 'because', 'into', 'itself', 'too', 'haven', 're', 'so', 'out', 'been', 'very', 'any', 'those', 'o', 'in', 'do', 'after', 'a', 'ourselves', 'we', 'ma', 'me', 'of', 'some', 'what', 'was', 'than']
 
-    message = session['message']
+    message = session['message'].lower()
     message_words = message.split(' ')
     search_words = []
     for word in message_words:
-        if word in stopWords:
+        if word in stopWords or word in ["course","courses"]:
             continue
         else:
             search_words.append(word)
 
     search_query = ' '.join(search_words)
+    print(search_query)
     question = "Do you want me to find courses related to '" + search_query + "'?"
     quick_reply_obj = response.quick_reply(
                                             text=question,
@@ -43,7 +45,6 @@ def maybe_find_course(session):
     }
     redis.hmset(key, event)
     redis.expire(key, 259200)
-    return 0
 
 def find_course(session):
     response.send(session,"Finding the courses")
