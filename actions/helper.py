@@ -7,7 +7,6 @@ def purpose(session):
 
 def certificates(session):
     message = session['message']
-    
     if 'certificate' in message.lower() or 'certificates' in message.lower():
         response.send(session,"Here is what people think about it on Quora")
         choices = [

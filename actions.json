@@ -6,5 +6,5 @@
     "bot purpose":"helper.purpose",
     "hints":"helper.purpose",
     "certificates":"helper.certificates",
-    "None":["Can you please rephrase?"]
+    "None":"courses.maybe_find_course"
 }
