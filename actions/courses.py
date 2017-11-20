@@ -43,6 +43,7 @@ def maybe_find_course(session):
     }
     redis.hmset(key, event)
     redis.expire(key, 259200)
+    return 0
 
 def find_course(session):
     response.send(session,"Finding the courses")
