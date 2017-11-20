@@ -4,7 +4,7 @@ from urllib.parse import quote
 import ast
 import json 
 
-from .courses import find_profession
+from .courses import find_profession, find_course
 
 def yes(session):
     response.sendTyping(session)
@@ -25,9 +25,9 @@ def yes(session):
     if event:
         question = str(event[b'question'],'utf-8')
         topic = str(event[b'topic'],'utf-8')
-        profession = str(event[b'profession'],'utf-8')
 
         if question == 'topic':
+            profession = str(event[b'profession'],'utf-8')
             if user_data:
                 topics = user_data['topics']
 
@@ -48,8 +48,13 @@ def yes(session):
                 load = mongo.db.user_data.insert_one(user_obj)
             session['entities'] = [{"value":profession}]
             find_profession(session)
+        elif question == 'courses':
+            session['entities'] = [{"value":topic}]
+            find_course(session)
         else:
             response.send(session,":)")
+
+
 
 def no(session):
     response.sendTyping(session)

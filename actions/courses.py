@@ -21,7 +21,28 @@ def maybe_find_course(session):
             search_words.append(word)
 
     search_query = ' '.join(search_words)
-    response.send(session,"Do you want me to find courses on " + search_query + "?")
+    question = "Do you want me to find courses related to '" + search_query + "'?"
+    quick_reply_obj = response.quick_reply(
+                                            text=question,
+                                            replies = [
+                                                response.replies(
+                                                    title="Yes",
+                                                    payload="Yes"
+                                                ),
+                                                response.replies(
+                                                    title="No",
+                                                    payload="No"
+                                                )
+                                            ]
+                                        )
+    response.send(session,quick_reply_obj)
+    key = session['user']['id']
+    event = {
+        "question":"courses",
+        "topic":search_query
+    }
+    redis.hmset(key, event)
+    redis.expire(key, 259200)
 
 def find_course(session):
     response.send(session,"Finding the courses")
