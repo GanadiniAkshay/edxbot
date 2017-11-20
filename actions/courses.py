@@ -8,7 +8,20 @@ import os
 
 
 def maybe_find_course(session):
-    response.send(session,"Do you want me to find courses?")
+    #load the stop words
+    stopWords = ['d', 'down', 'they', 'during', 'no', 'yourselves', 'most', 'needn', 'which', 'yours', 'you', 've', 'once', 'own', 'does', 'weren', 'myself', 'will', 'mustn', 'm', 'couldn', 'from', 'their', 'ain', 'off', 'isn', 'wasn', 'doesn', 'll', 'about', 'where', 'only', 'an', 'nor', 'shouldn', 'by', 'themselves', 'should', 'him', 'ours', 'to', 'hasn', 'for', 'why', 'until', 'y', 'when', 'her', 'aren', 'didn', 'that', 'there', 'at', 'same', 'herself', 'below', 'it', 'under', 'how', 'more', 'whom', 'not', 'both', 'don', 'against', 'further', 'hers', 'just', 'each', 'being', 'your', 'now', 'then', 'if', 'have', 'is', 'be', 'but', 'shan', 'the', 'before', 'over', 's', 'his', 'mightn', 'as', 'can', 'yourself', 'up', 'between', 'i', 'on', 'few', 'having', 'and', 'himself', 'this', 'again', 'he', 'am', 'theirs', 'who', 'these', 'has', 'or', 'with', 't', 'here', 'such', 'through', 'won', 'above', 'did', 'she', 'had', 'our', 'my', 'all', 'were', 'its', 'hadn', 'other', 'doing', 'are', 'them', 'wouldn', 'while', 'because', 'into', 'itself', 'too', 'haven', 're', 'so', 'out', 'been', 'very', 'any', 'those', 'o', 'in', 'do', 'after', 'a', 'ourselves', 'we', 'ma', 'me', 'of', 'some', 'what', 'was', 'than']
+
+    message = session['message']
+    message_words = message.split(' ')
+    search_words = []
+    for word in message_words:
+        if word in stopWords:
+            continue
+        else:
+            search_words.append(word)
+
+    search_query = ' '.join(search_words)
+    response.send(session,"Do you want me to find courses on " + search_query + "?")
 
 def find_course(session):
     response.send(session,"Finding the courses")
