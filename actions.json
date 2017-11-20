@@ -5,5 +5,6 @@
     "no":"reply.no",
     "bot purpose":"helper.purpose",
     "hints":"helper.purpose",
-    "certificates":"helper.certificates"
+    "certificates":"helper.certificates",
+    "None":["Can you please rephrase?"]
 }
