@@ -6,6 +6,9 @@ import math
 import operator
 import os
 
+def ngrams(sentence, n):
+  return zip(*[sentence.split()[i:] for i in range(n)])
+
 
 def maybe_find_course(session):
     redis = session['cache']
@@ -47,6 +50,7 @@ def maybe_find_course(session):
     redis.expire(key, 259200)
 
 def find_course(session):
+    redis = session['cache']
     response.send(session,"Finding the courses")
     response.sendTyping(session)
     if session['entities'][0]['value']:
@@ -55,50 +59,126 @@ def find_course(session):
         response.send("What do you want to learn about?")
         return 1
     with open('./data/mod_courses.json','r') as data:
-        courses = json.loads(data.read())
-    with open('./data/inv_index.json','r') as data:
-        inv_index= json.loads(data.read())
+        course_data = json.loads(data.read())
+    with open('./data/gram_courses_inverted.json','r') as data:
+        inverted_index= json.loads(data.read())
 
-    final_res_set = []
-    res_set = {}
-    words = query.split(" ")
+    query = query.lower()
+    #load the stop words
+    stopWords = ['(',')',',','|','.','?','-','d','introduction','interested','pace','course','learn','best','popular','subjects','courses',':','next','&','guide','online','courses','step','study','thing','need','edx','certificate','however','earn','down', 'they', 'during', 'no', 'yourselves', 'most', 'needn', 'which', 'yours', 'you', 've', 'once', 'own', 'does', 'weren', 'myself', 'will', 'mustn', 'm', 'couldn', 'from', 'their', 'ain', 'off', 'isn', 'wasn', 'doesn', 'll', 'about', 'where', 'only', 'an', 'nor', 'shouldn', 'by', 'themselves', 'should', 'him', 'ours', 'to', 'hasn', 'for', 'why', 'until', 'y', 'when', 'her', 'aren', 'didn', 'that', 'there', 'at', 'same', 'herself', 'below', 'it', 'under', 'how', 'more', 'whom', 'not', 'both', 'don', 'against', 'further', 'hers', 'just', 'each', 'being', 'your', 'now', 'then', 'if', 'have', 'is', 'be', 'but', 'shan', 'the', 'before', 'over', 's', 'his', 'mightn', 'as', 'can', 'yourself', 'up', 'between', 'i', 'on', 'few', 'having', 'and', 'himself', 'this', 'again', 'he', 'am', 'theirs', 'who', 'these', 'has', 'or', 'with', 't', 'here', 'such', 'through', 'won', 'above', 'did', 'she', 'had', 'our', 'my', 'all', 'were', 'its', 'hadn', 'other', 'doing', 'are', 'them', 'wouldn', 'while', 'because', 'into', 'itself', 'too', 'haven', 're', 'so', 'out', 'been', 'very', 'any', 'those', 'o', 'in', 'do', 'after', 'a', 'ourselves', 'we', 'ma', 'me', 'of', 'some', 'what', 'was', 'than']
 
-    for word in words:
-            if not word in inv_index:
-                continue
-            else:
-                responses = inv_index[word][:10]
+    possible_courses = {}
 
-                for resp in responses:
-                    file,score = resp
+    #remove stop words
+    query = ' ' + query + ' '
+    for word in stopWords:
+        query = query.replace(' ' + word + ' ',' ')
 
-                    if file in res_set:
-                        res_set[file] += score
-                    else:
-                        res_set[file] = score
+    # print(query)
 
-
-    sorted_results = sorted(res_set.items(), key=operator.itemgetter(1), reverse=True)
-    final_courses = sorted_results[:5]
-    res_courses = []
-    for course_key in final_courses:
-        course_name = course_key[0]
-        search_url = courses[course_name]['marketing_url'].split("?")[0] + '?search_query=' + quote(courses[course_name]['title'])
-        if courses[course_name]['image']['src'] and courses[course_name]['image']['src']!='None':
-            img_url = courses[course_name]['image']['src']
+    #get 2 grams
+    doubles = list(ngrams(query,2))
+    for double in doubles:
+        double = ' '.join(double)
+        if double in inverted_index["2"]:
+            scores = inverted_index["2"][double]
+            sorted_scores = sorted(scores.items(),key=operator.itemgetter(1), reverse=True)
+            possibles = sorted_scores[:50]
+            
+            for item in possibles:
+                if item[0] in possible_courses:
+                    possible_courses[item[0]] += item[1]
+                else:
+                    possible_courses[item[0]] = item[1]
+                    
+    #get 1 grams
+    singles = query.split(' ')
+    for single in singles:
+        if single in inverted_index["1"]:
+            scores = inverted_index["1"][single]
+            sorted_scores = sorted(scores.items(),key=operator.itemgetter(1), reverse=True)
+            possibles = sorted_scores[:50]
+            
+            for item in possibles:
+                if item[0] in possible_courses:
+                    possible_courses[item[0]] += item[1]
+                else:
+                    possible_courses[item[0]] = item[1]
+                    
+                    
+    #seperate possible_courses into categories
+    categorised_courses = {"introductory":{},"intermediate":{},"advanced":{}}
+    for course in possible_courses:
+        if not course in course_data:
+            continue
         else:
-            img_url = "https://www.edx.org/sites/default/files/mediakit/image/thumb/edx_logo_200x200.png"
-        course_obj = response.template_element(
-                                                    title=courses[course_name]['title'],
-                                                    image_url=img_url,
-                                                    subtitle=courses[course_name]['short_description'],
-                                                    action=response.actions(type="web_url",url=search_url),
-                                                    buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
-                                                )
-        res_courses.append(course_obj)
+            level = course_data[course]['level_type'].lower()
+            categorised_courses[level][course] = possible_courses[course]
 
-    template = response.template(type="generic",elements=res_courses)
-    response.send(session,template)
+    intro = len(categorised_courses["introductory"].keys())
+    inter = len(categorised_courses["intermediate"].keys())
+    advanced = len(categorised_courses["advanced"].keys())
+
+    print("Found " + str(intro) + " introductory courses")
+    print("Found " + str(inter) + " intermediate courses")
+    print("Found " + str(advanced) + " advanced courses")
+
+    # Get top 5 in each category
+    top_categorised_courses = {}
+
+    intro_courses = categorised_courses["introductory"]
+    sorted_intro_courses = sorted(categorised_courses["introductory"].items(),key=operator.itemgetter(1), reverse=True)
+    top_categorised_courses["introductory"] = sorted_intro_courses[:5]
+
+    inter_courses = categorised_courses["intermediate"]
+    sorted_inter_courses = sorted(categorised_courses["intermediate"].items(),key=operator.itemgetter(1), reverse=True)
+    top_categorised_courses["intermediate"] = sorted_inter_courses[:5]
+
+    advanced_courses = categorised_courses["advanced"]
+    sorted_advanced_courses = sorted(categorised_courses["advanced"].items(),key=operator.itemgetter(1), reverse=True)
+    top_categorised_courses["advanced"] = sorted_intro_courses[:5]
+
+    # print(top_categorised_courses)
+    question = "What level of courses are you looking for?"
+
+    replies = []
+    if intro > 0:
+        replies.append(
+                        response.replies(
+                                        title="Introductory",
+                                        payload="introductory"
+                        )
+                      )
+
+    if inter > 0:
+        replies.append(
+                        response.replies(
+                                        title="Intermediate",
+                                        payload="intermediate"
+                        )
+                      )
+
+    if intro > 0:
+        replies.append(
+                        response.replies(
+                                        title="Advanced",
+                                        payload="advanced"
+                        )
+                      )
+    quick_reply_obj = response.quick_reply(
+                                            text=question,
+                                            replies = replies
+                                        )
+    response.send(session,quick_reply_obj)
+    key = session['user']['id'] + '_levels'
+    event = {
+        "question":"levels",
+        "introductory":top_categorised_courses["introductory"],
+        "intermediate":top_categorised_courses["intermediate"],
+        "advanced":top_categorised_courses["advanced"]
+    }
+    redis.hmset(key, event)
+    redis.expire(key, 259200)
 
 
 def find_profession(session):

@@ -6,5 +6,8 @@
     "bot purpose":"helper.purpose",
     "hints":"helper.purpose",
     "certificates":"helper.certificates",
+    "introductory":"levels.intro",
+    "intermediate":"levels.inter",
+    "advanced":"levels.advanced",
     "None":"courses.maybe_find_course"
 }

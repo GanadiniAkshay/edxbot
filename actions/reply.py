@@ -78,10 +78,9 @@ def no(session):
     if event:
         question = str(event[b'question'],'utf-8')
         topic = str(event[b'topic'],'utf-8')
-        courses = ast.literal_eval(str(event[b'courses'],'utf-8'))
-        reply_text = str(event[b'reply_text'],'utf-8')
         if question == 'topic':
-           
+            courses = ast.literal_eval(str(event[b'courses'],'utf-8'))
+            reply_text = str(event[b'reply_text'],'utf-8')
             res_courses = []
             for course in courses:
                 if course in courses_data:
