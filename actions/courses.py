@@ -89,16 +89,20 @@ def find_course(session):
     for word in advanced_words:
         if word in message or word in query:
             level_type = 'advanced'
+            print(word)
+            query = query.replace(word,' ')
 
     for word in inter_words:
         if word in message or word in query:
             level_type = 'intermediate'
+            query = query.replace(word,' ')
     
     for word in intro_words:
         if word in message or word in query:
             level_type = 'introductory'
+            query = query.replace(word,' ')
 
-    # print(query)
+    print(query)
 
     #get 2 grams
     doubles = list(ngrams(query,2))
@@ -160,7 +164,9 @@ def find_course(session):
 
     advanced_courses = categorised_courses["advanced"]
     sorted_advanced_courses = sorted(categorised_courses["advanced"].items(),key=operator.itemgetter(1), reverse=True)
-    top_categorised_courses["advanced"] = sorted_intro_courses[:5]
+    top_categorised_courses["advanced"] = sorted_advanced_courses[:5]
+
+    # print(top_categorised_courses["advanced"])
 
     print(level_type)
     if level_type == None:
