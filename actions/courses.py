@@ -13,16 +13,20 @@ def ngrams(sentence, n):
 def maybe_find_course(session):
     redis = session['cache']
     #load the stop words
-    stopWords = ['d', 'down', 'they', 'during', 'no', 'yourselves', 'most', 'needn', 'which', 'yours', 'you', 've', 'once', 'own', 'does', 'weren', 'myself', 'will', 'mustn', 'm', 'couldn', 'from', 'their', 'ain', 'off', 'isn', 'wasn', 'doesn', 'll', 'about', 'where', 'only', 'an', 'nor', 'shouldn', 'by', 'themselves', 'should', 'him', 'ours', 'to', 'hasn', 'for', 'why', 'until', 'y', 'when', 'her', 'aren', 'didn', 'that', 'there', 'at', 'same', 'herself', 'below', 'it', 'under', 'how', 'more', 'whom', 'not', 'both', 'don', 'against', 'further', 'hers', 'just', 'each', 'being', 'your', 'now', 'then', 'if', 'have', 'is', 'be', 'but', 'shan', 'the', 'before', 'over', 's', 'his', 'mightn', 'as', 'can', 'yourself', 'up', 'between', 'i', 'on', 'few', 'having', 'and', 'himself', 'this', 'again', 'he', 'am', 'theirs', 'who', 'these', 'has', 'or', 'with', 't', 'here', 'such', 'through', 'won', 'above', 'did', 'she', 'had', 'our', 'my', 'all', 'were', 'its', 'hadn', 'other', 'doing', 'are', 'them', 'wouldn', 'while', 'because', 'into', 'itself', 'too', 'haven', 're', 'so', 'out', 'been', 'very', 'any', 'those', 'o', 'in', 'do', 'after', 'a', 'ourselves', 'we', 'ma', 'me', 'of', 'some', 'what', 'was', 'than']
+    stopWords = ['d','find' ,'down', 'they', 'during', 'no', 'yourselves', 'most', 'needn', 'which', 'yours', 'you', 've', 'once', 'own', 'does', 'weren', 'myself', 'will', 'mustn', 'm', 'couldn', 'from', 'their', 'ain', 'off', 'isn', 'wasn', 'doesn', 'll', 'about', 'where', 'only', 'an', 'nor', 'shouldn', 'by', 'themselves', 'should', 'him', 'ours', 'to', 'hasn', 'for', 'why', 'until', 'y', 'when', 'her', 'aren', 'didn', 'that', 'there', 'at', 'same', 'herself', 'below', 'it', 'under', 'how', 'more', 'whom', 'not', 'both', 'don', 'against', 'further', 'hers', 'just', 'each', 'being', 'your', 'now', 'then', 'if', 'have', 'is', 'be', 'but', 'shan', 'the', 'before', 'over', 's', 'his', 'mightn', 'as', 'can', 'yourself', 'up', 'between', 'i', 'on', 'few', 'having', 'and', 'himself', 'this', 'again', 'he', 'am', 'theirs', 'who', 'these', 'has', 'or', 'with', 't', 'here', 'such', 'through', 'won', 'above', 'did', 'she', 'had', 'our', 'my', 'all', 'were', 'its', 'hadn', 'other', 'doing', 'are', 'them', 'wouldn', 'while', 'because', 'into', 'itself', 'too', 'haven', 're', 'so', 'out', 'been', 'very', 'any', 'those', 'o', 'in', 'do', 'after', 'a', 'ourselves', 'we', 'ma', 'me', 'of', 'some', 'what', 'was', 'than']
 
+    
     message = session['message'].lower()
     message_words = message.split(' ')
     search_words = []
+
     for word in message_words:
         if word in stopWords or word in ["course","courses"]:
             continue
         else:
             search_words.append(word)
+
+
 
     search_query = ' '.join(search_words)
     print(search_query)
@@ -52,13 +56,14 @@ def maybe_find_course(session):
 def find_course(session):
     redis = session['cache']
     response.send(session,"Finding the courses")
+    message = session['message'].lower()
     response.sendTyping(session)
     if session['entities'][0]['value']:
         query = session['entities'][0]['value']
     else:
         response.send("What do you want to learn about?")
         return 1
-    with open('./data/mod_courses.json','r') as data:
+    with open('./data/newest_courses.json','r') as data:
         course_data = json.loads(data.read())
     with open('./data/gram_courses_inverted.json','r') as data:
         inverted_index= json.loads(data.read())
@@ -69,10 +74,29 @@ def find_course(session):
 
     possible_courses = {}
 
+    advanced_words = [" advanced "," advance "," advn "," advnc "," tougher "," tough "," hard "," harder "]
+    inter_words = [" intermediate "," intermedit "," inter "," medium "," mid "]
+    intro_words = [" introductory "," intro "," introduction "," begginer "," starting "," start "]
+
+
+    level_type = None
     #remove stop words
     query = ' ' + query + ' '
     for word in stopWords:
         query = query.replace(' ' + word + ' ',' ')
+
+    print(level_type)
+    for word in advanced_words:
+        if word in message or word in query:
+            level_type = 'advanced'
+
+    for word in inter_words:
+        if word in message or word in query:
+            level_type = 'intermediate'
+    
+    for word in intro_words:
+        if word in message or word in query:
+            level_type = 'introductory'
 
     # print(query)
 
@@ -112,7 +136,7 @@ def find_course(session):
         if not course in course_data:
             continue
         else:
-            level = course_data[course]['level_type'].lower()
+            level = course_data[course]['level'].lower()
             categorised_courses[level][course] = possible_courses[course]
 
     intro = len(categorised_courses["introductory"].keys())
@@ -138,47 +162,100 @@ def find_course(session):
     sorted_advanced_courses = sorted(categorised_courses["advanced"].items(),key=operator.itemgetter(1), reverse=True)
     top_categorised_courses["advanced"] = sorted_intro_courses[:5]
 
-    # print(top_categorised_courses)
-    question = "What level of courses are you looking for?"
+    print(level_type)
+    if level_type == None:
+        # print(top_categorised_courses)
+        question = "What level of courses are you looking for?"
 
-    replies = []
-    if intro > 0:
-        replies.append(
-                        response.replies(
-                                        title="Introductory",
-                                        payload="introductory"
+        replies = []
+        if intro > 0:
+            replies.append(
+                            response.replies(
+                                            title="Introductory",
+                                            payload="introductory"
+                            )
                         )
-                      )
 
-    if inter > 0:
-        replies.append(
-                        response.replies(
-                                        title="Intermediate",
-                                        payload="intermediate"
+        if inter > 0:
+            replies.append(
+                            response.replies(
+                                            title="Intermediate",
+                                            payload="intermediate"
+                            )
                         )
-                      )
 
-    if intro > 0:
-        replies.append(
-                        response.replies(
-                                        title="Advanced",
-                                        payload="advanced"
+        if intro > 0:
+            replies.append(
+                            response.replies(
+                                            title="Advanced",
+                                            payload="advanced"
+                            )
                         )
-                      )
-    quick_reply_obj = response.quick_reply(
-                                            text=question,
-                                            replies = replies
-                                        )
-    response.send(session,quick_reply_obj)
-    key = session['user']['id'] + '_levels'
-    event = {
-        "question":"levels",
-        "introductory":top_categorised_courses["introductory"],
-        "intermediate":top_categorised_courses["intermediate"],
-        "advanced":top_categorised_courses["advanced"]
-    }
-    redis.hmset(key, event)
-    redis.expire(key, 259200)
+        quick_reply_obj = response.quick_reply(
+                                                text=question,
+                                                replies = replies
+                                            )
+        response.send(session,quick_reply_obj)
+        key = session['user']['id'] + '_levels'
+        event = {
+            "question":"levels",
+            "introductory":top_categorised_courses["introductory"],
+            "intermediate":top_categorised_courses["intermediate"],
+            "advanced":top_categorised_courses["advanced"]
+        }
+        redis.hmset(key, event)
+        redis.expire(key, 259200)
+    elif level_type == 'advanced':
+        courses = top_categorised_courses["advanced"]
+        
+        res_courses = []
+        for course in courses:
+            course_name = course[0]
+            search_url = course_data[course_name]['marketing_url']
+            img_url = course_data[course_name]['img_url']
+            course_obj = response.template_element(
+                                                title=course_name,
+                                                image_url=img_url,
+                                                action=response.actions(type="web_url",url=search_url),
+                                                buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
+                                            )
+            res_courses.append(course_obj)
+        template = response.template(type="generic",elements=res_courses)
+        response.send(session,template)
+    elif level_type == 'intermediate':
+        courses = top_categorised_courses["intermediate"]
+        
+        res_courses = []
+        for course in courses:
+            course_name = course[0]
+            search_url = course_data[course_name]['marketing_url']
+            img_url = course_data[course_name]['img_url']
+            course_obj = response.template_element(
+                                                title=course_name,
+                                                image_url=img_url,
+                                                action=response.actions(type="web_url",url=search_url),
+                                                buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
+                                            )
+            res_courses.append(course_obj)
+        template = response.template(type="generic",elements=res_courses)
+        response.send(session,template)
+    elif level_type == 'introductory':
+        courses = top_categorised_courses["introductory"]
+        
+        res_courses = []
+        for course in courses:
+            course_name = course[0]
+            search_url = course_data[course_name]['marketing_url']
+            img_url = course_data[course_name]['img_url']
+            course_obj = response.template_element(
+                                                title=course_name,
+                                                image_url=img_url,
+                                                action=response.actions(type="web_url",url=search_url),
+                                                buttons=[response.button(type="web_url",url=search_url,title="Open Course")]
+                                            )
+            res_courses.append(course_obj)
+        template = response.template(type="generic",elements=res_courses)
+        response.send(session,template)
 
 
 def find_profession(session):
